@@ -21,7 +21,9 @@ public class MainActivity extends AppCompatActivity {
     TextView timerView,scoreView,bestScoreView;
     Random numberGenerator;
     Handler gameHandler;
+    Handler timeHandler;
     Runnable run;
+    Runnable timeCounter;
     SharedPreferences sharedPreferences;
     int time,score,highestScore,notClickedCount,miliseconds;
     @Override
@@ -60,8 +62,6 @@ public class MainActivity extends AppCompatActivity {
         gameHandler = new Handler();
         run = () -> {
             gameLogic();
-            time++;
-            timerView.setText(String.format("Time: %s",time));
             notClickedCount++;
             if (notClickedCount >= 3) onStoppingGame();
             else {
@@ -69,13 +69,21 @@ public class MainActivity extends AppCompatActivity {
                 gameHandler.postDelayed(run,miliseconds);
             }
         };
+        timeHandler = new Handler();
+        timeCounter = () -> {
+            time++;
+            timerView.setText(String.format("Time: %s",time));
+            timeHandler.postDelayed(timeCounter,1000);
+        };
         gameHandler.post(run);
+        timeHandler.post(timeCounter);
     }
     public void onStoppingGame(){
         startButton.setEnabled(true);
         startButton.setVisibility(View.VISIBLE);
         kenny5.setEnabled(false);
         gameHandler.removeCallbacks(run);
+        timeHandler.removeCallbacks(timeCounter);
         if (score > highestScore){
             sharedPreferences.edit().putInt("highestScore",score).apply();
             bestScoreView.setText(String.format("Score: %s",score));
